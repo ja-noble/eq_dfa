@@ -10,6 +10,13 @@ public class Transition {
         this.end = end;
     }
  
+    public Transition(Transition toCopy)
+    {
+        this.start = toCopy.getStart();
+        this.input = toCopy.getInput();
+        this.end = toCopy.getEnd();
+    }
+    
     public String getStart()
     {
         return this.start;

@@ -7,7 +7,7 @@ public class DeterministicFiniteAutomata
     private ArrayList<Transition> transitions = new ArrayList<Transition>();
     private String startState;
 
-    public DeterministicFiniteAutomata(String[] states, String[] input, String[] accept, ArrayList<Transition> transitons, String start)
+    public DeterministicFiniteAutomata(String[] states, String[] input, String[] accept, ArrayList<Transition> transitonsToCopy, String start)
     {
         for (String name : states)
         {
@@ -24,9 +24,10 @@ public class DeterministicFiniteAutomata
                 }
             }
         }
-        for(Transition transition : transitions)
+        for(Transition transition1 : transitonsToCopy)
         {
-            this.transitions.add(transition);
+            Transition toCopy = new Transition(transition1);
+            this.transitions.add(toCopy);
         }
         this.startState = start;
     }

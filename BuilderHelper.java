@@ -30,7 +30,7 @@ public class BuilderHelper {
 
             ArrayList<Transition> transitions1 = new ArrayList<Transition>();
 
-            boolean[] transitionFlags = {false, false, false};
+            boolean[] transitionFlags = {true, false, false};
             String starting = "";
             String input = "";
             String end = "";
@@ -63,7 +63,8 @@ public class BuilderHelper {
                                 starting = "";
                                 input = "";
                                 end = "";
-                                for (int i = 0; i < 3; i++) transitionFlags[i] = false;
+                                transitionFlags[0] = true;
+                                transitionFlags[2] = false;
                             }
                         }
                         else if(instanceFlags[4]) 
