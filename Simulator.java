@@ -5,7 +5,7 @@ public final class Simulator {
     public static void main(String[] args)
     {
         BuilderHelper dfa1 = new BuilderHelper("sampleInputs/input1.txt");
-        BuilderHelper dfa2 = new BuilderHelper("sampleInputs/input1.txt");
+        BuilderHelper dfa2 = new BuilderHelper("sampleInputs/input2.txt");
 
         BufferedWriter out = null;
 
@@ -19,8 +19,8 @@ public final class Simulator {
             DeterministicFiniteAutomata union1 = ex1c.union(ex2);
 
             DeterministicFiniteAutomata ex2c = ex2.complement();
-            DeterministicFiniteAutomata union2 = ex2c.union(ex1);
-
+            DeterministicFiniteAutomata union2 = ex1.union(ex2c);
+            
             DeterministicFiniteAutomata finalUnion = union1.union(union2);
 
             out.write("Do the two DFA's accept all the same languages: "+ finalUnion.isEmpty());

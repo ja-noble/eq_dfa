@@ -46,31 +46,37 @@ public class DeterministicFiniteAutomata
         this.startState = start;
     }
 
+    public DeterministicFiniteAutomata(DeterministicFiniteAutomata copy)
+    {
+        for(State stateToCopy : copy.getStates())
+        {
+            this.states.add(new State(stateToCopy));
+        }
+        this.inputAlphabet = copy.getAlphabet();
+        for(Transition tran : copy.getTransitions())
+        {
+            this.transitions.add(new Transition(tran));
+        }
+        this.startState = copy.getStartState();
+    }
+
     public DeterministicFiniteAutomata complement()
     {
-        String[] states = new String[this.states.size()];
-        ArrayList<String> accepting = new ArrayList<String>();
-        ArrayList<Transition> newTrans = new ArrayList<Transition>();
-        int iterator = 0;
-        for(State state : this.states)
+        DeterministicFiniteAutomata comp = new DeterministicFiniteAutomata(this);
+        for(State oppositeState : comp.getStates())
         {
-            states[iterator++] = state.getName();
-            if(!state.getAccept()) accepting.add(state.getName());
+            oppositeState.setOpposite();
         }
-        for (Transition transition : this.transitions)
-        {
-            newTrans.add(transition);
-        }
-        String[] acceptance = accepting.toArray(new String[accepting.size()]);
-        return new DeterministicFiniteAutomata(states, this.inputAlphabet, acceptance, newTrans, this.startState);
+        return comp;
     }
 
     public DeterministicFiniteAutomata union(DeterministicFiniteAutomata outer)
     {
-        ArrayList<State> states = new ArrayList<State>();
+        ArrayList<State> newStates = new ArrayList<State>();
         boolean currentAccept;
         String newName;
         String outputTrans;
+        String input;
         ArrayList<Transition> newTrans = new ArrayList<Transition>();
 
         for(State innerState : this.getStates())
@@ -78,42 +84,122 @@ public class DeterministicFiniteAutomata
             for(State outerState : outer.getStates())
             {
                 currentAccept = innerState.getAccept() && outerState.getAccept();
-                newName = innerState.getName()+"+"+outerState.getName();
-                states.add(new State(currentAccept, newName));
-
-                for(Transition checkTrans : this.transitions)
+                newName = innerState.getName()+outerState.getName();
+                newStates.add(new State(currentAccept, newName));
+            }
+        }
+        for (State checkingStates : newStates)
+        {
+            for(Transition innerTrans : this.transitions)
+            {
+                if(innerTrans.getStart().equals(checkingStates.getName().substring(0, innerTrans.getStart().length())))
                 {
-                    String input = "move to next transition";
-                    if(innerState.getName().equals(checkTrans.getStart()))
+                    input = innerTrans.getInput();
+                    outputTrans = innerTrans.getEnd();
+                    for(Transition outerTrans : outer.getTransitions())
                     {
-                        input = checkTrans.getInput();
-                    }
-                    for (Transition checkOuter : outer.getTransitions())
-                    {
-                        if(checkOuter.getStart().equals(outerState.getName()) && input.equals(checkOuter.getInput()))
+                        if(outerTrans.getStart().equals(checkingStates.getName().substring(innerTrans.getStart().length())) && outerTrans.getInput().equals(input))
                         {
-                            outputTrans = checkTrans.getEnd()+"+"+checkOuter.getEnd();
-                            newTrans.add(new Transition(newName, input, outputTrans));
+                            outputTrans = outputTrans+outerTrans.getEnd();
+                            newTrans.add(new Transition(checkingStates.getName(), input, outputTrans));
                         }
                     }
                 }
             }
         }
-        String start = this.getStartState()+"+"+outer.getStartState();
-        return new DeterministicFiniteAutomata(states, this.inputAlphabet, newTrans, start);
+        String start = this.getStartState()+outer.getStartState();
+        return new DeterministicFiniteAutomata(newStates, this.inputAlphabet, newTrans, start);
     }
 
     public boolean isEmpty()
     {
-        for(Transition transitions : this.transitions)
+        String nextState = "";
+        ArrayList<String> checkedStates = new ArrayList<String>();
+
+        for(State startState : this.states)
         {
-            for(State state : this.states)
+            if(startState.getName().equals(this.startState))
             {
-                if(state.getName().equals(transitions.getStart()) || state.getName().equals(transitions.getEnd()))
+                if(startState.getAccept()) return false;
+                for(Transition checkTrans : this.transitions)
                 {
-                    if(state.getAccept()) return true;
+                    if(checkTrans.getStart().equals(startState.getName()))
+                    {
+                        if(!noAcceptStates(checkTrans.getEnd()))
+                        {
+                            return false;
+                        }
+                        nextState = checkTrans.getEnd();
+                        checkedStates.add(this.startState);
+                    }
                 }
             }
+        }
+
+        for(int i = 0; i < this.inputAlphabet.length; i++)
+        {
+            while(!allArrayIsSame(checkedStates, nextState))
+            {
+                for(Transition checkTrans2 : this.transitions)
+                {
+                    if(checkTrans2.getStart().equals(nextState))
+                    {
+                        if(!noAcceptStates(checkTrans2.getEnd()))
+                        {
+                            return false;
+                        }
+                        if(!noAcceptStates(checkTrans2.getStart()))
+                        {
+                            return false;
+                        }
+                        checkedStates.add(nextState);
+                        if(checkTrans2.getInput().equals(this.inputAlphabet[i])) nextState = checkTrans2.getEnd();
+                    }
+                }
+            } 
+            checkedStates.clear();
+            nextState =  this.startState;
+        }
+        return true;
+    }
+
+    public boolean noAcceptStates(String name)
+    {
+        for(Transition checkTrans : this.transitions)
+        {
+            if(checkTrans.getStart().equals(name))
+            {
+                for(State checkStates : this.states)
+                {
+                    if(checkStates.getName().equals(name))
+                    {
+                        if(checkStates.getAccept()) return false;
+                    }
+                    if(checkStates.getName().equals(checkTrans.getEnd()))
+                    {
+                        if(checkStates.getAccept()) return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public ArrayList<String> copyArray(ArrayList<String> toCopy)
+    {
+        ArrayList<String> newList = new ArrayList<String>();
+        for (String copy : toCopy)
+        {
+            newList.add(copy);
+        }
+        return newList;
+    }
+
+    public boolean allArrayIsSame(ArrayList<String> checks, String input)
+    {
+        for(String check : checks)
+        {
+            if(input.equals(check)) return true;
         }
         return false;
     }
@@ -131,5 +217,10 @@ public class DeterministicFiniteAutomata
     public ArrayList<Transition> getTransitions()
     {
         return this.transitions;
+    }
+
+    public String[] getAlphabet()
+    {
+        return this.inputAlphabet;
     }
 }

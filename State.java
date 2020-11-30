@@ -20,8 +20,19 @@ public class State {
         return this.name;
     }
 
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
     public boolean getAccept()
     {
         return this.accept;
+    }
+
+    public State(State copy)
+    {
+        this.accept = copy.getAccept();
+        this.name = copy.getName();
     }
 }

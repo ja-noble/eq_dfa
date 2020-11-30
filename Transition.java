@@ -16,7 +16,7 @@ public class Transition {
         this.input = toCopy.getInput();
         this.end = toCopy.getEnd();
     }
-    
+
     public String getStart()
     {
         return this.start;
@@ -30,5 +30,15 @@ public class Transition {
     public String getInput()
     {
         return this.input;
+    }
+
+    public void setStart(String input)
+    {
+        this.start = input;
+    }
+
+    public void setEnd(String input)
+    {
+        this.end = input;
     }
 }
